@@ -12,14 +12,14 @@ use IO::Socket::INET qw/sockaddr_in inet_aton/;
 use List::Util ();
 require Carp;
 
-my $ICMP_PING = 'ccnnna*';
+our $ICMP_PING = 'ccnnna*';
 
-my $ICMP_ECHOREPLY     = 0;     # Echo Reply
-my $ICMP_DEST_UNREACH  = 3;     # Destination Unreachable
-my $ICMP_SOURCE_QUENCH = 4;     # Source Quench
-my $ICMP_REDIRECT      = 5;     # Redirect (change route)
-my $ICMP_ECHO          = 8;     # Echo Request
-my $ICMP_TIME_EXCEEDED = 11;    # Time Exceeded
+our $ICMP_ECHOREPLY     = 0;     # Echo Reply
+our $ICMP_DEST_UNREACH  = 3;     # Destination Unreachable
+our $ICMP_SOURCE_QUENCH = 4;     # Source Quench
+our $ICMP_REDIRECT      = 5;     # Redirect (change route)
+our $ICMP_ECHO          = 8;     # Echo Request
+our $ICMP_TIME_EXCEEDED = 11;    # Time Exceeded
 
 sub new {
     my ($class, %args) = @_;
@@ -166,7 +166,7 @@ sub _on_read {
     my $socket = $self->{_socket};
     $socket->sysread(my $chunk, 4194304, 0);
 
-    my ($request, $type, $data) = $self->_process_chunk($chunk);
+    my ($request, $type, $data) = $self->_process_chunk_to_request($chunk);
     return unless $request;
 
     if ($type == $ICMP_ECHOREPLY) {
@@ -218,6 +218,8 @@ sub _process_chunk_to_request {
 
     # Is it response to our latest message?
     return unless $sequence == @{$request->{results}} + 1;
+    
+    return ($request, $type, $data);
 
 }
 
